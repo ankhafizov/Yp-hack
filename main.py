@@ -15,12 +15,10 @@ with open("configs/app_config.yaml", 'r') as file:
     config = yaml.safe_load(file)
 
 
-@app.post("/check-video-duplicate", response_model=VideoLinkResponse)
-def check_video_duplicate_route(video: VideoLinkRequest):
-    ### Эндпоинт по проверке дубликатов 
+def get_video(video_link):
+    ### Получение пути до сохранения видео + UUID
 
     # Извлекаем UUID из ссылки
-    video_link = video.link
     uuid_with_extension = video_link.split("/")[-1]
     uuid = uuid_with_extension.split(".")[0]
 
@@ -32,9 +30,18 @@ def check_video_duplicate_route(video: VideoLinkRequest):
     if not os.path.exists(video_folder):
         os.makedirs(video_folder)
 
+    return video_pth, uuid
+
+
+@app.post("/check-video-duplicate", response_model=VideoLinkResponse)
+def check_video_duplicate_route(video: VideoLinkRequest):
+    ### Эндпоинт по проверке дубликатов 
+
+    video_pth, uuid = get_video(video.link)
+
     # Скачиваем видео и сохраняем его
     try:
-        urllib.request.urlretrieve(video_link, video_pth)
+        urllib.request.urlretrieve(video.link, video_pth)
     except urllib.error.HTTPError as e:
         raise HTTPException(status_code=400, detail="Ошибка 400: Bad Request (url не считавается)")
 
@@ -60,22 +67,11 @@ def check_video_duplicate_route(video: VideoLinkRequest):
 def check_video_duplicate_route(video: VideoLinkRequest):
     ### Эндпоинт по проверке дубликатов 
 
-    # Извлекаем UUID из ссылки
-    video_link = video.link
-    uuid_with_extension = video_link.split("/")[-1]
-    uuid = uuid_with_extension.split(".")[0]
-
-    # Путь для сохранения видео
-    video_folder = config["general"]["video_folder"]
-    video_pth = os.path.join(video_folder, f"{uuid}.mp4")
-
-    # Проверяем, существует ли папка, и создаем ее, если нет
-    if not os.path.exists(video_folder):
-        os.makedirs(video_folder)
+    video_pth, uuid = get_video(video.link)
 
     # Скачиваем видео и сохраняем его
     try:
-        urllib.request.urlretrieve(video_link, video_pth)
+        urllib.request.urlretrieve(video.link, video_pth)
     except urllib.error.HTTPError as e:
         raise HTTPException(status_code=400, detail="Ошибка 400: Bad Request (url не считавается)")
 
