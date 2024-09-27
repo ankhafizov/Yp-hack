@@ -56,6 +56,46 @@ def check_video_duplicate_route(video: VideoLinkRequest):
     return response
 
 
+@app.post("/insert-video-db", response_model=VideoInsertResponse)
+def check_video_duplicate_route(video: VideoLinkRequest):
+    ### Эндпоинт по проверке дубликатов 
+
+    # Извлекаем UUID из ссылки
+    video_link = video.link
+    uuid_with_extension = video_link.split("/")[-1]
+    uuid = uuid_with_extension.split(".")[0]
+
+    # Путь для сохранения видео
+    video_folder = config["general"]["video_folder"]
+    video_pth = os.path.join(video_folder, f"{uuid}.mp4")
+
+    # Проверяем, существует ли папка, и создаем ее, если нет
+    if not os.path.exists(video_folder):
+        os.makedirs(video_folder)
+
+    # Скачиваем видео и сохраняем его
+    try:
+        urllib.request.urlretrieve(video_link, video_pth)
+    except urllib.error.HTTPError as e:
+        raise HTTPException(status_code=400, detail="Ошибка 400: Bad Request (url не считавается)")
+
+    # Get embedding
+    embedding = insert_new_video(
+        VideoElement(video_path=video_pth, uuid=uuid)
+    )
+
+    # Remove the downloaded video file
+    if config["pipeline"]["delete_file_mp4"]:
+        os.remove(video_pth)
+
+    # Formulate the response
+    response = VideoInsertResponse(
+        embedding=embedding
+    )
+
+    return response
+
+
 @app.get("/")
 async def read_root():
     return {

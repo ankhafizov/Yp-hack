@@ -25,6 +25,27 @@ paths:
           description: "Неверный запрос"
         500:
           description: "Ошибка сервера"
+
+  /insert-video-db:
+    post:
+      tags:
+      - API для внесения видео эмбеддингов в векторную базу данных 
+      summary: "Внесение новых видео в бд"
+      parameters:
+        - in: body
+          name: videoLink
+          required: true
+          schema:
+            $ref: "#/definitions/videoLinkRequest"
+      responses:
+        200:
+          description: "Получнный эмбеддинг"
+          schema:
+            $ref: "#/definitions/videoInsertResponse"
+        400:
+          description: "Неверный запрос"
+        500:
+          description: "Ошибка сервера"
           
 definitions:
 
@@ -49,4 +70,14 @@ definitions:
         enum: 
           - "0003d59f-89cb-4c5c-9156-6c5bc07c6fad"
           - "000ab50a-e0bd-4577-9d21-f1f426144321"
+  
+  videoInsertResponse:
+    type: object
+    properties:
+      embedding:
+        type: list
+        description: эмбеддинг видео
+        enum: 
+          - [0.2, 0.3, 0.3, 0.1]
+          - [0.64, 0.35, 0.23, 0.01, 0]
   

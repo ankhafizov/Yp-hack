@@ -1,3 +1,3 @@
-from schema.video_link import *
+from schema.schema import *
 
 __all__ = ["VideoLinkRequest", "VideoLinkResponse", "VideoInsertResponse"]

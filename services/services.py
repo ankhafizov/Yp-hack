@@ -30,4 +30,4 @@ def insert_new_video(video_element: VideoElement):
     video_element = video_embedding_node.process(video_element)
     video_element = vector_db_node.process_insert(video_element)
 
-    return list(video_element.embedding)
+    return list(video_element.embedding) if video_element.embedding is not None else []
