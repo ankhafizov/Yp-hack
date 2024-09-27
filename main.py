@@ -5,9 +5,7 @@ import os
 import urllib.request
 import uvicorn
 
-from nodes.VideoEmbeddingNode import VideoEmbeddingNode
-from nodes.VectorDBNode import VectorDBNode
-from nodes.VideoClassifierNode import VideoClassifierNode
+from services import check_video_duplicate, insert_new_video
 from elements.VideoElement import VideoElement
 
 
@@ -16,40 +14,29 @@ app = FastAPI()
 with open("configs/app_config.yaml", 'r') as file:
     config = yaml.safe_load(file)
 
-# Инициализация нод:
-video_embedding_node = VideoEmbeddingNode(config)
-vector_db_node = VectorDBNode(config)
-video_classifier_node = VideoClassifierNode(config)
-
-def check_video_duplicate(video_element: VideoElement):
-    ### Функция реализуект обработку видео и говорит есть ли дубликат (если есть то кто)
-
-    video_element = video_embedding_node.process(video_element)
-    video_element = vector_db_node.process_search(video_element)
-    video_element = video_classifier_node.process(video_element)
-    
-    return video_element.is_dublicate, video_element.top_1_neighbour_uuid
-
 
 @app.post("/check-video-duplicate", response_model=VideoLinkResponse)
 def check_video_duplicate_route(video: VideoLinkRequest):
     ### Эндпоинт по проверке дубликатов 
-    
-    video_link = video.link
 
     # Извлекаем UUID из ссылки
+    video_link = video.link
     uuid_with_extension = video_link.split("/")[-1]
     uuid = uuid_with_extension.split(".")[0]
 
     # Путь для сохранения видео
-    video_pth = os.path.join(config["general"]["video_folder"], f"{uuid}.mp4")
+    video_folder = config["general"]["video_folder"]
+    video_pth = os.path.join(video_folder, f"{uuid}.mp4")
 
     # Проверяем, существует ли папка, и создаем ее, если нет
-    if not os.path.exists(config["general"]["video_folder"]):
-        os.makedirs(config["general"]["video_folder"])
+    if not os.path.exists(video_folder):
+        os.makedirs(video_folder)
 
     # Скачиваем видео и сохраняем его
-    urllib.request.urlretrieve(video_link, video_pth)
+    try:
+        urllib.request.urlretrieve(video_link, video_pth)
+    except urllib.error.HTTPError as e:
+        raise HTTPException(status_code=400, detail="Ошибка 400: Bad Request (url не считавается)")
 
     # Check for duplicates
     is_duplicate, duplicate_uuid = check_video_duplicate(
@@ -76,17 +63,16 @@ async def read_root():
     }
 
 
-def load_swagger_yaml(file_path: str):
-    with open(file_path, "r", encoding="utf-8") as file:
-        return yaml.safe_load(file)
-
-
 @app.on_event("startup")
 async def startup_event():
     # Load the Swagger YAML file
-    openapi_schema = load_swagger_yaml("swagger.yaml")  
+
+    swagger_pth = config["general"]["swagger_pth"]
+    with open(swagger_pth, "r", encoding="utf-8") as file:
+        openapi_schema = yaml.safe_load(file)
+
     app.openapi_schema = openapi_schema
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=config["general"]["fastapi_port"], reload=True)
