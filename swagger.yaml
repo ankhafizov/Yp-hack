@@ -1,0 +1,52 @@
+swagger: "2.0"
+
+info:
+  version: "1.0.0"
+  title: "Video Duplicate Checker API"
+
+paths:
+  /check-video-duplicate:
+    post:
+      tags:
+      - API для проверки дубликатов видео
+      summary: "Проверка видео на дублирование"
+      parameters:
+        - in: body
+          name: videoLink
+          required: true
+          schema:
+            $ref: "#/definitions/videoLinkRequest"
+      responses:
+        200:
+          description: "Результат проверки"
+          schema:
+            $ref: "#/definitions/videoLinkResponse"
+        400:
+          description: "Неверный запрос"
+        500:
+          description: "Ошибка сервера"
+          
+definitions:
+
+  videoLinkRequest:
+    type: object
+    properties:
+      link:
+        type: string
+        description: ссылка на видео
+        example: "https://example.com/video.mp4"
+  
+  videoLinkResponse:
+    type: object
+    properties:
+      is_duplicate:
+        type: boolean
+        description: признак дублирования
+        example: false
+      duplicate_for:
+        type: string
+        description: идентификтаор видео в формате uuid4
+        enum: 
+          - "0003d59f-89cb-4c5c-9156-6c5bc07c6fad"
+          - "000ab50a-e0bd-4577-9d21-f1f426144321"
+  
