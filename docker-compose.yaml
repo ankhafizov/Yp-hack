@@ -48,14 +48,14 @@ services:
     volumes:
       - ./yappy_dublicate_services/volumes/milvus:/var/lib/milvus
     ports:
-      - ${MILVUS_PORT}:19530
+      - 19530:19530
     depends_on:
       - "etcd"
       - "minio"
     networks:
       - ml_monitoring
 
-  preprod:
+  app_backend:
     build: .
     restart: always
     container_name: preprod
