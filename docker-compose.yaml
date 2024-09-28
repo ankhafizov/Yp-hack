@@ -46,8 +46,6 @@ services:
     depends_on:
       - "etcd"
       - "minio"
-    networks:
-      - ml_monitoring
   app_backend:
     build: .
     restart: always
