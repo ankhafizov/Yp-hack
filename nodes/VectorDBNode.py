@@ -17,15 +17,17 @@ class VectorDBNode:
         # создание клиента и коллекции
         self.client = MilvusClient(uri=f"http://{self.host}:{self.port}")
 
+        # удаление бд по флагу
+        if self.drop_db and self.client.has_collection(collection_name=self.collection_name):
+            _ = self.client.delete(collection_name=self.collection_name)
+
         if not self.client.has_collection(collection_name=self.collection_name):
             self.client.create_collection(
                 collection_name=self.collection_name,
                 dimension=self.dimension,
                 metric_type=self.metric_type,
             )
-        # удаление бд по флагу
-        if self.drop_db:
-            _ = self.client.delete(collection_name= self.collection_name)
+
         self.num_video_element = 1
 
     def process_search(self, video_element: VideoElement):
@@ -41,7 +43,7 @@ class VectorDBNode:
             res = res[0][0]
             video_element.top_1_neighbour_uuid = res["entity"]["uid"]
             metric_distance = float(res["distance"])
-            video_element.is_dublicate = metric_distance >= self.cosine_distance_treshold
+            video_element.is_dublicate = metric_distance <= self.cosine_distance_treshold
         return video_element
 
     def process_insert(self, video_element: VideoElement):
