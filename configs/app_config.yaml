@@ -16,4 +16,11 @@ general:
 video_embedding_node:
   model_pth: test.pt
 
-
+VectorDBNode:
+  collection_name: "demo_collection"
+  dimension: 5
+  cosine_distance_treshold: 0.1
+  metric_type: "COSINE"
+  host: milvus-standalone
+  port: 19530
+  drop_db: False
