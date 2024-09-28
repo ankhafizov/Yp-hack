@@ -1,0 +1,8 @@
+__pycache__
+.ipynb_checkpoints
+drafts
+logs
+videos
+Notebook
+docker-compose.yaml
+.gitignore
