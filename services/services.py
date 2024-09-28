@@ -8,7 +8,7 @@ with open("configs/app_config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 # Инициализация нод:
-video_embedding_node = VideoEmbeddingNode(config)
+video_embedding_node = VideoEmbeddingNode(config["video_embedding_node"])
 vector_db_node = VectorDBNode(config["VectorDBNode"])
 
 def check_video_duplicate(video_element: VideoElement):
