@@ -15,6 +15,11 @@ general:
 
 video_embedding_node:
   embeding_method: "mvit"
+  mvit:
+    model_name: "mvit_base_32x3" 
+    num_frames: 32
+    crop_size: 224
+    side_size: 224
   resnet_fifty:
     model_name: "slowfast_r50" 
     frames_per_second: 30
@@ -22,11 +27,6 @@ video_embedding_node:
     num_frames: 32
     crop_size: 256
     side_size: 256
-  mvit:
-    model_name: "mvit_base_32x3" 
-    num_frames: 32
-    crop_size: 224
-    side_size: 224
 
 VectorDBNode:
   collection_name: "demo_collection"

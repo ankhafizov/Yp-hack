@@ -22,10 +22,74 @@ class VideoEmbeddingNode:
            self.embeding_class = ResnetFiftyEmbeding(config[self.embeding_method])
         if self.embeding_method == "mvit":
              self.embeding_class = MvitEmbeding(config[self.embeding_method])
-             
+
     def process(self, video_element: VideoElement):
         video_element.embedding = self.embeding_class.process(video_element.video_path)
         return video_element 
+
+
+class MvitEmbeding:
+    def __init__(self, config: dict) -> None:
+        self.n_frames = config["num_frames"]
+        self.transforms = self._get_transforms(config)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model_name = config["model_name"]
+        self.model = torch.hub.load(
+            "facebookresearch/pytorchvideo:main", model=model_name, pretrained=True
+        )
+        self.model.to(self.device)
+
+    def _get_transforms(self, config: dict):
+        side_size = config["crop_size"]
+        crop_size = config["crop_size"]
+        mean = [0.45, 0.45, 0.45]
+        std = [0.225, 0.225, 0.225]
+        return ApplyTransformToKey(
+            key="video",
+            transform=Compose(
+                [
+                    Lambda(lambda x: x/255.0),
+                    NormalizeVideo(mean, std),
+                    ShortSideScale(
+                        size=side_size
+                    ),
+                    CenterCropVideo(crop_size)
+                ]
+            ),
+        )
+
+    def process(self, video_path):
+        self.cap = cv2.VideoCapture(video_path)
+        video_data = self.get_video_data()
+
+        inputs = video_data["video"]
+        inputs = video_data["video"].reshape(
+            1,
+            video_data["video"].shape[0],
+            video_data["video"].shape[1],
+            video_data["video"].shape[2],
+            video_data["video"].shape[3],
+        )
+        inputs = inputs.to("cuda")
+
+        return self.model(inputs).cpu().detach().numpy()[0]
+
+    def get_video_data(self):
+        frames = self._get_frames()
+        video_data = {"video": torch.Tensor(np.rollaxis(np.array(frames), 3, 0))}
+
+        return self.transforms(video_data)
+
+    def _get_frames(self):
+        frames = []
+        frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        for indx in np.linspace(0, frame_count, self.n_frames, dtype=int, endpoint=False):
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, indx)
+            _, frame = self.cap.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frames.append(frame)
+
+        return frames
 
 
 class PackPathway(torch.nn.Module):
@@ -90,67 +154,4 @@ class ResnetFiftyEmbeding:
         inputs = video_data["video"]
         inputs = [i.to(self.device)[None, ...] for i in inputs]
 
-        return self.model(inputs).cpu().detach().numpy()[0].tolist()
-
-class MvitEmbeding:
-    def __init__(self, config: dict) -> None:
-        self.n_frames = config["num_frames"]
-        self.transforms = self._get_transforms(config)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model_name = config["model_name"]
-        self.model = torch.hub.load(
-            "facebookresearch/pytorchvideo:main", model=model_name, pretrained=True
-        )
-        self.model.to(self.device)
-
-    def _get_transforms(self, config: dict):
-        side_size = config["crop_size"]
-        crop_size = config["crop_size"]
-        mean = [0.45, 0.45, 0.45]
-        std = [0.225, 0.225, 0.225]
-        return ApplyTransformToKey(
-            key="video",
-            transform=Compose(
-                [
-                    Lambda(lambda x: x/255.0),
-                    NormalizeVideo(mean, std),
-                    ShortSideScale(
-                        size=side_size
-                    ),
-                    CenterCropVideo(crop_size)
-                ]
-            ),
-        )
-
-    def process(self, video_path):
-        self.cap = cv2.VideoCapture(video_path)
-        video_data = self.get_video_data()
-
-        inputs = video_data["video"]
-        inputs = video_data["video"].reshape(
-            1,
-            video_data["video"].shape[0],
-            video_data["video"].shape[1],
-            video_data["video"].shape[2],
-            video_data["video"].shape[3],
-        )
-        inputs = inputs.to("cuda")
-
         return self.model(inputs).cpu().detach().numpy()[0]
-
-    def get_video_data(self):
-        frames = self._get_frames()
-        video_data = {"video": torch.Tensor(np.rollaxis(np.array(frames), 3, 0))}
-
-        return self.transforms(video_data)
-
-    def _get_frames(self):
-        frames = []
-        frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        for indx in np.linspace(0, frame_count, self.n_frames, dtype=int, endpoint=False):
-            self.cap.set(cv2.CAP_PROP_POS_FRAMES, indx)
-            _, frame = self.cap.read()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frames.append(frame)
-
-        return frames
