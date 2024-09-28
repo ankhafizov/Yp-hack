@@ -16,7 +16,6 @@ general:
 video_embedding_node:
   embeding_method: "mvit"
   resnet_fifty:
-    # model_pth: test.pt
     model_name: "slowfast_r50" 
     frames_per_second: 30
     sampling_rate: 2
@@ -24,16 +23,13 @@ video_embedding_node:
     crop_size: 256
     side_size: 256
   mvit:
-    # model_pth: test.pt
     model_name: "mvit_base_32x3" 
-    frames_per_second: 30
-    sampling_rate: 2
     num_frames: 32
     crop_size: 224
     side_size: 224
 
 VectorDBNode:
-  collection_name: "demo_collection_2"
+  collection_name: "demo_collection"
   dimension: 400
   cosine_distance_treshold: 0.6
   metric_type: "COSINE"

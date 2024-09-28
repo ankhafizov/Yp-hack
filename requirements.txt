@@ -2,3 +2,4 @@ fastapi==0.112.2
 uvicorn==0.30.6
 PyYAML==6.0.2
 pymilvus==2.4.7
+opencv-python==4.10.0.84
