@@ -8,10 +8,9 @@ import uvicorn
 from services import check_video_duplicate, insert_new_video
 from elements.VideoElement import VideoElement
 
-
 app = FastAPI()
 
-with open("configs/app_config.yaml", 'r') as file:
+with open("configs/app_config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 
@@ -35,7 +34,7 @@ def get_video(video_link):
 
 @app.post("/check-video-duplicate", response_model=VideoLinkResponse)
 def check_video_duplicate_route(video: VideoLinkRequest):
-    ### Эндпоинт по проверке дубликатов 
+    ### Эндпоинт по проверке дубликатов
 
     video_pth, uuid = get_video(video.link)
 
@@ -45,27 +44,26 @@ def check_video_duplicate_route(video: VideoLinkRequest):
     except urllib.error.HTTPError as e:
         raise HTTPException(status_code=400, detail="Ошибка 400: Bad Request (url не считавается)")
 
-    # Check for duplicates
+    # Проверяем на дубликат
     is_duplicate, duplicate_uuid = check_video_duplicate(
         VideoElement(video_path=video_pth, uuid=uuid)
     )
 
-    # Remove the downloaded video file
+    # Удаляем загруженное видео
     if config["pipeline"]["delete_file_mp4"]:
         os.remove(video_pth)
 
-    # Formulate the response
+    # Формируем Response
     response = VideoLinkResponse(
-        is_duplicate=is_duplicate,
-        duplicate_for=duplicate_uuid if is_duplicate else ""
+        is_duplicate=is_duplicate, duplicate_for=duplicate_uuid if is_duplicate else ""
     )
 
     return response
 
 
 @app.post("/insert-video-db", response_model=VideoInsertResponse)
-def check_video_duplicate_route(video: VideoLinkRequest):
-    ### Эндпоинт по проверке дубликатов 
+def insert_new_video_route(video: VideoLinkRequest):
+    ### Эндпоинт по проверке дубликатов
 
     video_pth, uuid = get_video(video.link)
 
@@ -75,19 +73,15 @@ def check_video_duplicate_route(video: VideoLinkRequest):
     except urllib.error.HTTPError as e:
         raise HTTPException(status_code=400, detail="Ошибка 400: Bad Request (url не считавается)")
 
-    # Get embedding
-    embedding = insert_new_video(
-        VideoElement(video_path=video_pth, uuid=uuid)
-    )
+    # Получаем эмбединг
+    embedding = insert_new_video(VideoElement(video_path=video_pth, uuid=uuid))
 
-    # Remove the downloaded video file
+    # Удаляем загруженное видео
     if config["pipeline"]["delete_file_mp4"]:
         os.remove(video_pth)
 
-    # Formulate the response
-    response = VideoInsertResponse(
-        embedding=embedding
-    )
+    # Формируем Response
+    response = VideoInsertResponse(embedding=embedding)
 
     return response
 
@@ -101,7 +95,7 @@ async def read_root():
 
 @app.on_event("startup")
 async def startup_event():
-    # Load the Swagger YAML file
+    # Загрузчик swagger.yaml
 
     swagger_pth = config["general"]["swagger_pth"]
     with open(swagger_pth, "r", encoding="utf-8") as file:
