@@ -33,7 +33,7 @@ def get_video(video_link):
 
 
 @app.post("/check-video-duplicate", response_model=VideoLinkResponse)
-def check_video_duplicate_route(video: VideoLinkRequest):
+async def check_video_duplicate_route(video: VideoLinkRequest):
     ### Эндпоинт по проверке дубликатов
 
     video_pth, uuid = get_video(video.link)
@@ -62,7 +62,7 @@ def check_video_duplicate_route(video: VideoLinkRequest):
 
 
 @app.post("/insert-video-db", response_model=VideoInsertResponse)
-def insert_new_video_route(video: VideoLinkRequest):
+async def insert_new_video_route(video: VideoLinkRequest):
     ### Эндпоинт по проверке дубликатов
 
     video_pth, uuid = get_video(video.link)
