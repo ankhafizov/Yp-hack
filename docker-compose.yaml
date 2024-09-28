@@ -30,6 +30,9 @@ services:
     volumes:
       - ./yappy_dublicate_services/volumes/minio:/minio_data
     command: minio server /minio_data --console-address ":9001"
+    ports:
+      - 9001:9001
+      - 9000:9000
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
