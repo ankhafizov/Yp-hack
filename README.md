@@ -9,3 +9,7 @@ docker-compose -p video_duplicate_search up -d --build
 Все настройки можно указать в файле configs/app_config.yaml
 
 Итоговая сваггер документация после поднятия компоуза станет доступна по данной ссылке - http://127.0.0.1:8000/docs
+
+# Как тестировать
+
+Простой тест написан в файле example_test.py
