@@ -1,12 +1,7 @@
-version: '3.8'
-
-networks:
-  ml_monitoring:
-    driver: bridge
-
 services:
   etcd:
     container_name: milvus-etcd
+    restart: always
     image: quay.io/coreos/etcd:v3.5.5
     environment:
       - ETCD_AUTO_COMPACTION_MODE=revision
@@ -16,11 +11,9 @@ services:
     volumes:
       - ./yappy_dublicate_services/volumes/etcd:/etcd
     command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
-    networks:
-      - ml_monitoring
-
   minio:
     container_name: milvus-minio
+    restart: always
     image: minio/minio:RELEASE.2023-09-23T03-47-50Z
     environment:
       MINIO_ACCESS_KEY: minioadmin
@@ -38,11 +31,9 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    networks:
-      - ml_monitoring
-
   milvus-standalone:
     container_name: milvus-standalone
+    restart: always
     image: milvusdb/milvus:v2.4.11
     command: [ "milvus", "run", "standalone" ]
     environment:
@@ -55,9 +46,6 @@ services:
     depends_on:
       - "etcd"
       - "minio"
-    networks:
-      - ml_monitoring
-
   app_backend:
     build: .
     restart: always
@@ -68,8 +56,6 @@ services:
       - ./swagger.yaml:/app/swagger.yaml
     ports:
       - 8000:8000
-    networks:
-      - ml_monitoring
     depends_on:
       - milvus-standalone
     deploy:
