@@ -16,16 +16,17 @@ class VectorDBNode:
 
         # создание клиента и коллекции
         self.client = MilvusClient(uri=f"http://{self.host}:{self.port}")
-
+        
+                # удаление бд по флагу
+        if self.drop_db:
+            res = self.client.delete(collection_name=self.collection_name, filter="id > 0")
+        
         if not self.client.has_collection(collection_name=self.collection_name):
             self.client.create_collection(
                 collection_name=self.collection_name,
                 dimension=self.dimension,
                 metric_type=self.metric_type,
             )
-        # удаление бд по флагу
-        if self.drop_db:
-            _ = self.client.delete(collection_name= self.collection_name)
         self.num_video_element = 1
 
     def process_search(self, video_element: VideoElement):
