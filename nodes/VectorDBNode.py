@@ -41,7 +41,7 @@ class VectorDBNode:
             res = res[0][0]
             video_element.top_1_neighbour_uuid = res["entity"]["uid"]
             metric_distance = float(res["distance"])
-            video_element.is_dublicate = metric_distance <= self.cosine_distance_treshold
+            video_element.is_dublicate = metric_distance >= self.cosine_distance_treshold
         return video_element
 
     def process_insert(self, video_element: VideoElement):

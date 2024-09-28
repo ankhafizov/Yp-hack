@@ -61,7 +61,8 @@ services:
     container_name: preprod
     command: python main.py
     volumes:
-      - .:/app
+      - ./configs:/app/configs
+      - ./swagger.yaml:/app/swagger.yaml
     ports:
       - 8000:8000
     networks:

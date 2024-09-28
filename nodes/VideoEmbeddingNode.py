@@ -47,7 +47,7 @@ class VideoEmbeddingNode:
     def process(self, video_element: VideoElement):
         video_element.embedding = self.embeding_class.process(video_element.video_path)
         return video_element 
-    
+
 class ResnetFiftyEmbeding:
     def __init__(self, config: dict) -> None:
         mean = [0.45, 0.45, 0.45]
@@ -89,7 +89,7 @@ class ResnetFiftyEmbeding:
         inputs = [i.to(self.device)[None, ...] for i in inputs]
 
         return self.model(inputs).cpu().detach().numpy()[0].tolist()
-    
+
 class MvitEmbeding:
     def __init__(self, config: dict) -> None:
         mean = [0.45, 0.45, 0.45]
@@ -127,8 +127,13 @@ class MvitEmbeding:
         video_data = self.transform(video_data)
 
         inputs = video_data["video"]
-        inputs = video_data['video'].reshape(1, video_data['video'].shape[0], video_data['video'].shape[1], video_data['video'].shape[2], video_data['video'].shape[3])
-        inputs = inputs.to('cuda')
-
+        inputs = video_data["video"].reshape(
+            1,
+            video_data["video"].shape[0],
+            video_data["video"].shape[1],
+            video_data["video"].shape[2],
+            video_data["video"].shape[3],
+        )
+        inputs = inputs.to("cuda")
 
         return self.model(inputs).cpu().detach().numpy()[0].tolist()
