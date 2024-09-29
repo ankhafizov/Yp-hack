@@ -4,3 +4,4 @@ __pycache__
 **env**
 videos
 yappy_dublicate_services
+torchvideo_cache/checkpoints/MVIT_B_32x3_f294077834.pyth

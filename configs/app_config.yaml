@@ -31,7 +31,7 @@ video_embedding_node:
 VectorDBNode:
   collection_name: "demo_collection"
   dimension: 400
-  cosine_distance_treshold: 0.6
+  cosine_distance_treshold: 0.8
   metric_type: "COSINE"
   host: milvus-standalone
   port: 19530
