@@ -35,4 +35,4 @@ VectorDBNode:
   metric_type: "COSINE"
   host: milvus-standalone
   port: 19530
-  drop_db: True
+  drop_db: False
